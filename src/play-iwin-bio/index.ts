@@ -21,15 +21,20 @@ cron.schedule('* * * * *',
         console.log("LIST PROXY:", proxies);
 
         for (let i = 0; i < proxies.length; i++) {
-          const proxy = {
-            host: proxies[i].server.split(':')[0],
-            port: Number(proxies[i].server.split(':')[1]),
-            protocol: 'https'
-          };
+          // const proxy = {
+          //   host: proxies[i].server.split(':')[0],
+          //   port: Number(proxies[i].server.split(':')[1]),
+          // };
+
+          let proxy = null
 
           let { username, xtoken, password } = await site.register(proxy);
           if (username && xtoken) {
-            const _ = await accountService.createAccount({ username, password })
+
+            console.log(`USERNAME: ${username}`);
+
+            const acc = await accountService.createAccount({ username, password })
+            console.log(acc);
 
             await site.updateUsername(
               `${username.slice(0, 6)}${Math.floor(100 + Math.random() * 900)}`,

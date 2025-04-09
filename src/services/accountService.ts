@@ -12,6 +12,11 @@ export class AccountService {
 
   async createAccount(account: Partial<Account>): Promise<any> {
     try {
+      // Initialize Data Source if not already initialized
+      if (!AppDataSource.isInitialized) {
+        await AppDataSource.initialize();
+        console.log("Data Source initialized for proxy creation.");
+      }
       const newAccount = this.accountRepository.create(account);
       console.log(`Save account to db success: ${newAccount}`);
 
@@ -23,7 +28,12 @@ export class AccountService {
   }
 
   async getAccount(id: number): Promise<any> {
-    return this.accountRepository.findOne({ where: { id } });
+
+    // Initialize Data Source if not already initialized
+    if (!AppDataSource.isInitialized) {
+      await AppDataSource.initialize();
+      console.log("Data Source initialized for proxy creation.");
+    } return this.accountRepository.findOne({ where: { id } });
   }
 
   // async getAllAccounts(): Promise<any[]> {

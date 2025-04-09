@@ -148,7 +148,6 @@ export class PlayIwinBioSite {
         "user-agent": generateUserAgent(),
         "x-token": `${xtoken}`,
       },
-      data: data,
     };
 
     let response = await axios
