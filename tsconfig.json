@@ -6,7 +6,9 @@
     "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "emitDecoratorMetadata": true, // Enables metadata emission for decorators
+    "experimentalDecorators": true // Enables experimental decorator support
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "tests"]

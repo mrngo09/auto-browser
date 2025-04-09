@@ -1,7 +1,8 @@
 import axios from "axios";
+import { generateSecChUa, generateUserAgent } from "../utils/userAgent";
 
 export class PlaySonClubSite {
-  constructor() {}
+  constructor() { }
 
   async singIn(username: string, password: string) {
     let url = "https://portal.taison01.com/api/Account/Login";
@@ -22,15 +23,13 @@ export class PlaySonClubSite {
       "content-type": "application/json; charset=UTF-8",
       origin: "https://play.son.club",
       referer: "https://play.son.club/",
-      "sec-ch-ua":
-        '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
+      "sec-ch-ua": generateSecChUa(),
       "sec-ch-ua-mobile": "?0",
       "sec-ch-ua-platform": '"Windows"',
       "sec-fetch-dest": "empty",
       "sec-fetch-mode": "cors",
       "sec-fetch-site": "cross-site",
-      "user-agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+      "user-agent": generateUserAgent()
     };
     var response = await axios
       .post(url, data, { headers, maxBodyLength: Infinity })
@@ -60,15 +59,13 @@ export class PlaySonClubSite {
         "content-type": "application/json; charset=UTF-8",
         origin: "https://play.son.club",
         referer: "https://play.son.club/",
-        "sec-ch-ua":
-          '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
+        "sec-ch-ua": generateSecChUa(),
         "sec-ch-ua-mobile": "?0",
         "sec-ch-ua-platform": '"Windows"',
         "sec-fetch-dest": "empty",
         "sec-fetch-mode": "cors",
         "sec-fetch-site": "cross-site",
-        "user-agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "user-agent": generateUserAgent(),
       },
     };
 

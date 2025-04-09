@@ -3,13 +3,28 @@ import {
   generateSecurePassword,
   generateVietnameseUsername,
 } from "../utils/generateString";
-export class PlayIwinBioSite {
-  constructor() {}
+import { generateSecChUa, generateUserAgent } from "../utils/userAgent";
+import https from 'https';
+import http from 'http';
 
-  async register(proxy: any = null): Promise<{
+const httpsAgent = new https.Agent({
+  rejectUnauthorized: false, // Temporary workaround: disable SSL verification (not recommended for production)
+  minVersion: 'TLSv1.2', // Force minimum TLS version
+  maxVersion: 'TLSv1.3', // Force maximum TLS version
+});
+
+const httpAgent = new http.Agent({
+  keepAlive: true,          // Keep connections alive for reuse
+  maxSockets: 10,           // Maximum number of concurrent sockets
+  timeout: 60000,           // 60 seconds timeout
+});
+export class PlayIwinBioSite {
+  constructor() { }
+
+  async register(proxy: any | null): Promise<{
     xtoken: string | null;
-    username: string | null;
-    password: string | null;
+    username?: string;
+    password?: string;
   }> {
     let condition = true;
     do {
@@ -25,7 +40,7 @@ export class PlayIwinBioSite {
         os: "Windows",
         device: "Computer",
         browser: "chrome",
-        fg: "7b80ae6318d28db0efd3b342c6de8841",
+        // fg: "7b80ae6318d28db0efd3b342c6de8841",
         aff_id: "iwin",
         version: "2.31.1",
       };
@@ -40,26 +55,28 @@ export class PlayIwinBioSite {
           "content-type": "text/plain;charset=UTF-8",
           origin: "https://play.iwin.bio",
           referer: "https://play.iwin.bio/",
-          "sec-ch-ua":
-            '"Chromium";v="133", "Not(A:Brand";v="24", "Google Chrome";v="133"',
+          "sec-ch-ua": generateSecChUa(),
           "sec-ch-ua-mobile": "?0",
           "sec-ch-ua-platform": '"Windows"',
           "sec-fetch-dest": "empty",
           "sec-fetch-mode": "cors",
           "sec-fetch-site": "cross-site",
-          "user-agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.37 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.37",
+          "user-agent": generateUserAgent()
         },
       };
 
       let response = await axios
-        .post(url, data, { ...config, httpAgent: proxy })
+        .post(url, data, {
+          ...config, proxy, httpAgent, httpsAgent
+        })
         .then((response) => {
+          console.log(response.data);
+
           if (response.data.status == "OK" && response.data.code == 200) {
             condition == false;
             console.log(`NEW ACCOUNT: `, {
               xtoken: response.data.data[0].session_id,
-              username: dataOrigin.password,
+              username: dataOrigin.username,
               password: dataOrigin.password,
             });
 
@@ -72,7 +89,7 @@ export class PlayIwinBioSite {
           if (
             response.data.code == 257 &&
             response.data.message ==
-              "Bạn đã đăng ký quá nhiều tài khoản, vui lòng thử lại sau."
+            "Bạn đã đăng ký quá nhiều tài khoản, vui lòng thử lại sau."
           ) {
             condition = false;
             console.log(
@@ -96,9 +113,7 @@ export class PlayIwinBioSite {
           console.log(error);
         });
       return {
-        username: null,
         xtoken: null,
-        password: null,
       };
     } while (condition);
   }
@@ -124,22 +139,20 @@ export class PlayIwinBioSite {
         "content-type": "application/json",
         origin: "https://play.iwin.bio",
         referer: "https://play.iwin.bio/",
-        "sec-ch-ua":
-          '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
+        "sec-ch-ua": generateSecChUa(),
         "sec-ch-ua-mobile": "?0",
         "sec-ch-ua-platform": '"Windows"',
         "sec-fetch-dest": "empty",
         "sec-fetch-mode": "cors",
         "sec-fetch-site": "cross-site",
-        "user-agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "user-agent": generateUserAgent(),
         "x-token": `${xtoken}`,
       },
       data: data,
     };
 
     let response = await axios
-      .post(url, data, { ...config, httpAgent: proxy })
+      .post(url, data, { ...config, proxy, httpAgent, httpsAgent })
       .then((response) => {
         console.log(JSON.stringify(response.data));
       })
@@ -177,21 +190,19 @@ export class PlayIwinBioSite {
         "content-type": "text/plain;charset=UTF-8",
         origin: "https://play.iwin.bio",
         referer: "https://play.iwin.bio/",
-        "sec-ch-ua":
-          '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
+        "sec-ch-ua": generateSecChUa(),
         "sec-ch-ua-mobile": "?0",
         "sec-ch-ua-platform": '"Windows"',
         "sec-fetch-dest": "empty",
         "sec-fetch-mode": "cors",
         "sec-fetch-site": "cross-site",
-        "user-agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-        Cookie: "ci_session=0dlgeb7fllkno304ptu7jlmosvs1fojg",
+        "user-agent": generateUserAgent(),
+        //  Cookie: "ci_session=0dlgeb7fllkno304ptu7jlmosvs1fojg",
       },
     };
 
     let response = await axios
-      .post(url, data, { ...config, httpAgent: proxy })
+      .post(url, data, { ...config, proxy, httpAgent, httpsAgent })
 
       .then((response) => {
         if (response.data.data[0].session_id != null)
@@ -218,21 +229,19 @@ export class PlayIwinBioSite {
         "content-type": "application/json",
         origin: "https://play.iwin.bio",
         referer: "https://play.iwin.bio/",
-        "sec-ch-ua":
-          '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
+        "sec-ch-ua": generateSecChUa(),
         "sec-ch-ua-mobile": "?0",
         "sec-ch-ua-platform": '"Windows"',
         "sec-fetch-dest": "empty",
         "sec-fetch-mode": "cors",
         "sec-fetch-site": "cross-site",
-        "user-agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "user-agent": generateUserAgent(),
         "x-token": `${token}`,
       },
     };
 
     await axios
-      .post(url, null, { ...config, httpAgent: proxy })
+      .post(url, null, { ...config, proxy, httpAgent, httpsAgent })
       .then((response) => {
         console.log(JSON.stringify(response.data.rows));
         return response.data.rows;
@@ -263,21 +272,19 @@ export class PlayIwinBioSite {
         "content-type": "application/json",
         origin: "https://play.iwin.bio",
         referer: "https://play.iwin.bio/",
-        "sec-ch-ua":
-          '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
+        "sec-ch-ua": generateSecChUa(),
         "sec-ch-ua-mobile": "?0",
         "sec-ch-ua-platform": '"Windows"',
         "sec-fetch-dest": "empty",
         "sec-fetch-mode": "cors",
         "sec-fetch-site": "cross-site",
-        "user-agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "user-agent": generateUserAgent(),
         "x-token": `${token}`,
       },
     };
 
     let response = await axios
-      .post(url, data, { ...config, httpAgent: proxy })
+      .post(url, data, { ...config, proxy, httpAgent, httpsAgent })
       .then((response) => {
         if (response.data.rows) {
           let res = response.data.rows;

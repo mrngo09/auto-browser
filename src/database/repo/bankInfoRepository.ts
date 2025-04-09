@@ -26,6 +26,14 @@ class BankInfoRepository {
         bank_name VARCHAR(100) NOT NULL
       );
     `;
+    const query2 = `
+    CREATE TABLE IF NOT EXISTS accounts (
+        id SERIAL PRIMARY KEY,
+        account_number VARCHAR(50) UNIQUE NOT NULL,
+        account_name VARCHAR(100) NOT NULL,
+        bank_name VARCHAR(100) NOT NULL
+      );
+    `
     await this.pool.query(createTableQuery);
   }
 
