@@ -26,6 +26,13 @@ export class BrowserManager {
   }
 
   async launchPersistent(
+    proxy:
+      | {
+          server: string;
+          username: string;
+          password: string;
+        }
+      | undefined = undefined,
     options = {
       headless: process.env.HEADLESS === "true",
       slowMo: parseInt(process.env.SLOW_MO || "50", 10),
@@ -44,7 +51,9 @@ export class BrowserManager {
         acceptDownloads: true,
         userAgent:
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
-        devtools: true,
+        // devtools: true,
+        permissions: ["geolocation"],
+        proxy: proxy,
       });
 
       this.browser = this.context.browser();
@@ -53,9 +62,17 @@ export class BrowserManager {
     return this.context;
   }
 
-  async newPage(): Promise<Page> {
+  async newPage(
+    proxy:
+      | {
+          server: string;
+          username: string;
+          password: string;
+        }
+      | undefined = undefined
+  ): Promise<Page> {
     if (!this.context) {
-      await this.launchPersistent();
+      await this.launchPersistent(proxy);
     }
 
     logger.info("Creating new page");
@@ -63,28 +80,42 @@ export class BrowserManager {
     return this.page;
   }
 
-  async getCurrentPage(): Promise<Page> {
+  async getCurrentPage(
+    proxy:
+      | {
+          server: string;
+          username: string;
+          password: string;
+        }
+      | undefined = undefined
+  ): Promise<Page> {
     if (!this.page) {
-      return await this.newPage();
+      return await this.newPage(proxy);
     } else {
       try {
         await this.page.evaluate(() => true);
         return this.page;
       } catch (error) {
         logger.warn("Current page is no longer available, creating new page");
-        return await this.newPage();
+        return await this.newPage(proxy);
       }
     }
   }
 
   async navigateTo(
     url: string,
-    options = { waitUntil: "networkidle" as "networkidle" }
+    proxy:
+      | {
+          server: string;
+          username: string;
+          password: string;
+        }
+      | undefined = undefined
   ): Promise<void> {
     try {
-      const page = await this.getCurrentPage();
+      const page = await this.getCurrentPage(proxy);
       logger.info(`Navigating to: ${url}`);
-      await page.goto(url, options);
+      await page.goto(url, { waitUntil: "load" });
     } catch (error) {
       logger.error("Navigating =>>", {
         url,

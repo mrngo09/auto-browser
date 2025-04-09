@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "v2": "ts-node src/cronjob/v2.ts",
     "playiwinbio": "ts-node src/play-iwin-bio/index.ts",
     "autoplayiwinbio": "ts-node src/play-iwin-bio/auto.ts",
     "playsonclub": "ts-node src/play-son-club/index.ts",

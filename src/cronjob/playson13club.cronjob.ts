@@ -23,9 +23,9 @@ async function main() {
   // await getPosition(page);
 
   // let captchaV2Url = "https://portal.taison01.com/api/account/captchav2";
-  let captchaV2Url = "data:image/png;base64";
 
   let captchaText = "";
+  let captchaV2Url = "data:image/png;base64";
   // page.on("response", async (response) => {
   //   try {
   //     const request = response.request();
