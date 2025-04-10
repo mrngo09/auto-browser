@@ -4,118 +4,99 @@ import {
   generateVietnameseUsername,
 } from "../utils/generateString";
 import { generateSecChUa, generateUserAgent } from "../utils/userAgent";
-import https from 'https';
-import http from 'http';
+import https from "https";
+import http from "http";
+import { HttpProxyAgent } from "http-proxy-agent";
 
 const httpsAgent = new https.Agent({
   rejectUnauthorized: false, // Temporary workaround: disable SSL verification (not recommended for production)
-  minVersion: 'TLSv1.2', // Force minimum TLS version
-  maxVersion: 'TLSv1.3', // Force maximum TLS version
+  minVersion: "TLSv1.2", // Force minimum TLS version
+  maxVersion: "TLSv1.3", // Force maximum TLS version
 });
 
 const httpAgent = new http.Agent({
-  keepAlive: true,          // Keep connections alive for reuse
-  maxSockets: 10,           // Maximum number of concurrent sockets
-  timeout: 60000,           // 60 seconds timeout
+  keepAlive: true, // Keep connections alive for reuse
+  maxSockets: 10, // Maximum number of concurrent sockets
+  timeout: 60000, // 60 seconds timeout
 });
 export class PlayIwinBioSite {
   constructor() { }
 
   async register(proxy: any | null): Promise<{
-    xtoken: string | null;
-    username?: string;
-    password?: string;
+    xtoken: string;
+    username: string;
+    password: string;
   }> {
-    let condition = true;
-    do {
-      let username = generateVietnameseUsername();
-      let password = generateSecurePassword();
-      let url = "https://getquayaybiai.gwyqinbg.com/user/register.aspx";
-      let dataOrigin = {
-        fullname: username,
-        username: username,
-        password: password,
-        app_id: "iwin.club",
-        avatar: "Avatar_22",
-        os: "Windows",
-        device: "Computer",
-        browser: "chrome",
-        // fg: "7b80ae6318d28db0efd3b342c6de8841",
-        aff_id: "iwin",
-        version: "2.31.1",
+    let username = generateVietnameseUsername();
+    let password = generateSecurePassword();
+    let url = "https://getquayaybiai.gwyqinbg.com/user/register.aspx";
+    let dataOrigin = {
+      fullname: username,
+      username: username,
+      password: password,
+      app_id: "iwin.club",
+      avatar: "Avatar_22",
+      os: "Windows",
+      device: "Computer",
+      browser: "chrome",
+      // fg: "7b80ae6318d28db0efd3b342c6de8841",
+      aff_id: "iwin",
+      version: "2.31.1",
+    };
+    let data = JSON.stringify(dataOrigin);
+    let config = {
+      maxBodyLength: Infinity,
+      headers: {
+        authority: "getquayaybiai.gwyqinbg.com",
+        accept: "*/*",
+        "accept-language":
+          "vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5",
+        "content-type": "text/plain;charset=UTF-8",
+        origin: "https://play.iwin.bio",
+        referer: "https://play.iwin.bio/",
+        "sec-ch-ua": generateSecChUa(),
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": '"Windows"',
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "cross-site",
+        "user-agent": generateUserAgent(),
+      },
+    };
+
+    let response = await axios
+      .post(url, data, {
+        ...config,
+        proxy,
+        httpAgent,
+      })
+      .then((response) => {
+        return response.data;
+      })
+      .catch((error: any) => {
+        console.log(error?.message);
+      });
+
+    let newAccount = {
+      xtoken: "",
+      username: "",
+      password: "",
+    };
+    if (response?.code == 257) {
+      console.log(
+        "Bạn đã đăng ký quá nhiều tài khoản, vui lòng thử lại sau.\nCần đổi proxy. "
+      );
+      return newAccount;
+    }
+
+    if (response?.data[0]?.session_id) {
+      newAccount = {
+        xtoken: response?.data[0]?.session_id.toString() ?? "",
+        username: dataOrigin.username ?? "",
+        password: dataOrigin.password ?? "",
       };
-      let data = JSON.stringify(dataOrigin);
-      let config = {
-        maxBodyLength: Infinity,
-        headers: {
-          authority: "getquayaybiai.gwyqinbg.com",
-          accept: "*/*",
-          "accept-language":
-            "vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5",
-          "content-type": "text/plain;charset=UTF-8",
-          origin: "https://play.iwin.bio",
-          referer: "https://play.iwin.bio/",
-          "sec-ch-ua": generateSecChUa(),
-          "sec-ch-ua-mobile": "?0",
-          "sec-ch-ua-platform": '"Windows"',
-          "sec-fetch-dest": "empty",
-          "sec-fetch-mode": "cors",
-          "sec-fetch-site": "cross-site",
-          "user-agent": generateUserAgent()
-        },
-      };
-
-      let response = await axios
-        .post(url, data, {
-          ...config, proxy, httpAgent, httpsAgent
-        })
-        .then((response) => {
-          console.log(response.data);
-
-          if (response.data.status == "OK" && response.data.code == 200) {
-            condition == false;
-            console.log(`NEW ACCOUNT: `, {
-              xtoken: response.data.data[0].session_id,
-              username: dataOrigin.username,
-              password: dataOrigin.password,
-            });
-
-            return {
-              xtoken: response.data.data[0].session_id,
-              username: dataOrigin.password,
-              password: dataOrigin.password,
-            };
-          }
-          if (
-            response.data.code == 257 &&
-            response.data.message ==
-            "Bạn đã đăng ký quá nhiều tài khoản, vui lòng thử lại sau."
-          ) {
-            condition = false;
-            console.log(
-              "Bạn đã đăng ký quá nhiều tài khoản, vui lòng thử lại sau.\nCần đổi proxy. "
-            );
-
-            return {
-              username: null,
-              xtoken: null,
-              password: null,
-            };
-          }
-          if (
-            response.data.message == "Tài khoản đã tồn tại" &&
-            response.data.code == 409
-          ) {
-            console.log("Tài khoản đã tồn tại, đang tạo tài khoản khác.");
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-      return {
-        xtoken: null,
-      };
-    } while (condition);
+    }
+    return newAccount;
   }
 
   async updateUsername(
@@ -150,15 +131,14 @@ export class PlayIwinBioSite {
       },
     };
 
-    let response = await axios
-      .post(url, data, { ...config, proxy, httpAgent, httpsAgent })
+    await axios
+      .post(url, data, { ...config, proxy, httpAgent })
       .then((response) => {
-        console.log(JSON.stringify(response.data));
+        return response.data
       })
-      .catch((error) => {
-        console.log(error);
+      .catch((error: any) => {
+        console.log(error?.message);
       });
-    return response;
   }
 
   async signIn(
@@ -255,7 +235,12 @@ export class PlayIwinBioSite {
     amount: number = 500000,
     bankCode: string = "BIDV",
     proxy: any = null
-  ): Promise<any> {
+  ): Promise<{
+    account_no?: string;
+    account_name?: string;
+    bank_name?: string;
+    message?: string;
+  }> {
     let data = JSON.stringify({
       amount: amount,
       bank_code: bankCode,
@@ -283,26 +268,28 @@ export class PlayIwinBioSite {
     };
 
     let response = await axios
-      .post(url, data, { ...config, proxy, httpAgent, httpsAgent })
+      .post(url, data, { ...config, httpAgent: new HttpProxyAgent(`http://${proxy?.host}:${proxy?.port}`) })
       .then((response) => {
-        if (response.data.rows) {
-          let res = response.data.rows;
-          let data = {
-            account_no: res.account_no,
-            account_name: res.account_name,
-            bank_name: res.bank_name,
-          };
-          return data;
-        }
-        if (response.data.code == 400) {
-          return {
-            message: `This account have suspended. Please login another account.`,
-          };
-        }
+        return response.data;
       })
-      .catch((error) => {
-        console.log(error);
+      .catch((error: any) => {
+        console.log(`ERROR API AXIOS POST DEPOSIT`, error?.message);
       });
-    return response;
+    let res = response?.rows;
+    let resResult: {
+      account_no: string;
+      account_name: string;
+      bank_name: string;
+    } = {
+      account_no: res?.account_no,
+      account_name: res?.account_name,
+      bank_name: res?.bank_name,
+    };
+    if (response.code == 400) {
+      return {
+        message: `This account have suspended. Please login another account.`,
+      };
+    }
+    return resResult;
   }
 }
