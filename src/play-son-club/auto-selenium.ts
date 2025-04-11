@@ -1,10 +1,15 @@
 import chrome from "selenium-webdriver/chrome";
-import { Actions, Builder, Key } from "selenium-webdriver";
+import { Builder } from "selenium-webdriver";
 import {
   generateSecurePassword,
   generateVietnameseUsername,
 } from "../utils/generateString";
 import { delay } from "../utils/random";
+declare module "selenium-webdriver" {
+  interface WebDriver {
+    executeCdpCommand(command: string, params: object): Promise<object>;
+  }
+}
 
 async function main() {
   const options = new chrome.Options();
@@ -21,7 +26,7 @@ async function main() {
     await driver.manage().deleteAllCookies();
 
     await driver.get("https://play.son.club");
-    const action = driver.actions({ async: true });
+    const action = driver.actions();
 
     const viewportSize: any = await driver.executeScript(
       "return { width: window.innerWidth, height: window.innerHeight };"
@@ -39,7 +44,7 @@ async function main() {
 
     await action.move({ x: 400, y: 565, duration: 100 }).click().perform();
     console.log("Clicked on the register button.Wait 5s");
-    await driver.sleep(1000); // Wait for the username field to be ready
+    await driver.sleep(3000); // Wait for the username field to be ready
 
     let username = generateVietnameseUsername();
     let password = generateSecurePassword();
@@ -48,7 +53,10 @@ async function main() {
     await action.move({ x: 370, y: 230 }).click().perform(); //username
     console.log("Clicked on the username field");
 
-    await action.sendKeys(username).perform();
+    await action
+      .sendKeys(username)
+      .pause(50) // Small delay between keys
+      .perform();
 
     // await action.move({ x: 370, y: 270, duration: 500 }).perform();
     // await action.click().perform(); //psw

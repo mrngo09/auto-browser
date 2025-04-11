@@ -1,4 +1,4 @@
-import { Builder, Key, WebDriver } from "selenium-webdriver";
+import { Builder, WebDriver } from "selenium-webdriver";
 import chrome from "selenium-webdriver/chrome";
 
 async function logMouseCoordinates(
